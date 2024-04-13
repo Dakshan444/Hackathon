@@ -95,7 +95,7 @@ def upload_file():
             
             file_type=chain.invoke("""[conetext]
             Try to indentify what kind a document's context it was.
-            Give me the output as the what kind of document it is. Give me the specific answer.
+            Give me the output as the what kind of document it is. If it contain business requirement releated thinks then return "Business Requirement Document" or Give me the specific answer.
             If the context is empty or with less content, give he output as "Empty File".
             """)
 
@@ -221,6 +221,39 @@ def get_user_story():
     else:
         return 'No user stories found in session', 404
 
+
+def generate_csv(user_stories):
+    # Convert the dictionary to a DataFrame
+    df = pd.DataFrame(user_stories)
+ 
+    # Transpose the DataFrame to have components as rows and attributes as columns
+    df = df.transpose()
+ 
+    # Specify the filename for the CSV file
+    # csv_filename = "user_stories.csv"
+ 
+    # Save the DataFrame to CSV file
+    csv_file = df.to_csv(index=False).encode()
+ 
+    # Print confirmation message
+   
+    return csv_file
+
+@app.route('/download_csv', methods=['POST'])
+def download_csv_api():
+    # Assume user_stories is received as JSON data in the request body
+    user_stories = request.json
+
+    # Generate the CSV data
+    csv_data = generate_csv(user_stories)
+
+    # Send the CSV data as a file attachment
+    return send_file(
+        filename_or_fp='user_stories.csv',
+        attachment_filename='user_stories.csv',
+        as_attachment=True,
+        mimetype='text/csv'
+    )
 
 
 if __name__ == "__main__":
