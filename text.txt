@@ -82,3 +82,11 @@ export class YourComponent {
 
 
 <button (click)="downloadCsv()">Download CSV</button>
+
+
+
+
+npx ng add @angular/material
+npm install ngx-file-drop --save
+npm install --save @angular/material @angular/cdk
+
