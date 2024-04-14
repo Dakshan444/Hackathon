@@ -29,3 +29,34 @@ MatExpansionModule
                 </div>
             </mat-tab>
         </mat-tab-group>
+
+
+
+submitFile(filename:string,file: File): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+    
+        return this.http.post<any>(this.submitFileUrl, formData, {
+          reportProgress: true,
+          observe: 'events'
+        }).pipe(
+            catchError(this.handleError<any>('submitFile', 'Error submitting the file'))
+        );
+      }
+
+
+ onFileSelected(event: any): void {
+      const file = event.target.files[0];
+      if (file) {
+        // Update selected file name
+          this.selectedFileName = file.name;
+          this.fileToUpload=file
+      } else {
+          this.selectedFileName = null; // Reset selected file name if no file selected
+      }
+  }       
+
+<div class="upload-box" (click)="triggerFileInput()">
+            <p>Drag and drop a file here or click to select a file</p>
+            <input type="file" id="fileInput" style="display: none;" (change)="onFileSelected($event)" accept=".pdf">
+        </div>
