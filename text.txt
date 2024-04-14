@@ -1,0 +1,31 @@
+import { MatExpansionModule } from '@angular/material/expansion';
+
+
+MatExpansionModule
+
+
+<mat-tab label="User Stories">
+                <div class="tab-content">
+                    <div *ngFor="let obj of UserStories">
+                        <div *ngFor="let key of getKeys(obj)">
+                            <mat-expansion-panel>
+                                <!-- Header of the expansion panel (headline) -->
+                                <mat-expansion-panel-header>
+                                    <mat-panel-title>
+                                        <h3 style="color: darkblue; font-weight: bold;">{{ key }}</h3>
+                                    </mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <!-- Inside content of the expansion panel -->
+                                <div>
+                                    <div *ngFor="let item of getObjectValues(obj[key])">
+                                        <p>
+                                            <span style="color: blue; font-weight: bold;">{{ item[0] }}:</span> {{ item[1] }}
+                                        </p>
+                                    </div>
+                                </div>                           
+                            </mat-expansion-panel>
+                        </div>
+                    </div>
+                </div>
+            </mat-tab>
+        </mat-tab-group>
