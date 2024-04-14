@@ -3,6 +3,7 @@ langchain_community
 langchain_google_genai
 python_dotenv
 flask
+flask-cors
 flask-RESTful
 faiss_cpu
 fpdf
