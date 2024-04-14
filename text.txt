@@ -1,62 +1,84 @@
-import { MatExpansionModule } from '@angular/material/expansion';
 
+//Service
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-MatExpansionModule
+@Injectable({
+    providedIn: 'root'
+})
+export class ApiService {
 
+    constructor(private http: HttpClient) { }
 
-<mat-tab label="User Stories">
-                <div class="tab-content">
-                    <div *ngFor="let obj of UserStories">
-                        <div *ngFor="let key of getKeys(obj)">
-                            <mat-expansion-panel>
-                                <!-- Header of the expansion panel (headline) -->
-                                <mat-expansion-panel-header>
-                                    <mat-panel-title>
-                                        <h3 style="color: darkblue; font-weight: bold;">{{ key }}</h3>
-                                    </mat-panel-title>
-                                </mat-expansion-panel-header>
-                                <!-- Inside content of the expansion panel -->
-                                <div>
-                                    <div *ngFor="let item of getObjectValues(obj[key])">
-                                        <p>
-                                            <span style="color: blue; font-weight: bold;">{{ item[0] }}:</span> {{ item[1] }}
-                                        </p>
-                                    </div>
-                                </div>                           
-                            </mat-expansion-panel>
-                        </div>
-                    </div>
-                </div>
-            </mat-tab>
-        </mat-tab-group>
+    downloadCsv(userStories: any): Observable<Blob> {
+        // Set HTTP headers to specify content type and responseType
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Accept': 'text/csv'
+        });
 
-
-
-submitFile(filename:string,file: File): Observable<any> {
-        const formData = new FormData();
-        formData.append('file', file);
-    
-        return this.http.post<any>(this.submitFileUrl, formData, {
-          reportProgress: true,
-          observe: 'events'
+        // Make a POST request to the download_csv endpoint with the userStories data
+        return this.http.post<Blob>('http://localhost:5000/download_csv', userStories, {
+            headers: headers,
+            responseType: 'blob' as 'json' // Specify response type as blob to handle file download
         }).pipe(
-            catchError(this.handleError<any>('submitFile', 'Error submitting the file'))
+            catchError(error => {
+                throw 'Error downloading CSV file: ' + error;
+            })
         );
+    }
+}
+
+
+//Component
+import { Component } from '@angular/core';
+import { ApiService } from './api.service';
+
+@Component({
+  selector: 'app-your-component',
+  templateUrl: './your-component.component.html',
+  styleUrls: ['./your-component.component.css']
+})
+export class YourComponent {
+
+  constructor(private apiService: ApiService) { }
+
+  downloadCsv(): void {
+    // Assuming userStories contains the user stories data
+    const userStories = { /* Your user stories data here */ };
+
+    // Call the downloadCsv method from the ApiService
+    this.apiService.downloadCsv(userStories).subscribe(
+      (data: Blob) => {
+        // Create URL for the Blob data
+        const url = window.URL.createObjectURL(data);
+
+        // Create a link element
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Set the filename for the downloaded file
+        link.download = 'user_stories.csv';
+
+        // Append the link to the document body
+        document.body.appendChild(link);
+
+        // Click the link to trigger the download
+        link.click();
+
+        // Cleanup: remove the link and revoke the URL
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error => {
+        console.error('Error downloading CSV file:', error);
       }
+    );
+  }
+}
 
 
- onFileSelected(event: any): void {
-      const file = event.target.files[0];
-      if (file) {
-        // Update selected file name
-          this.selectedFileName = file.name;
-          this.fileToUpload=file
-      } else {
-          this.selectedFileName = null; // Reset selected file name if no file selected
-      }
-  }       
 
-<div class="upload-box" (click)="triggerFileInput()">
-            <p>Drag and drop a file here or click to select a file</p>
-            <input type="file" id="fileInput" style="display: none;" (change)="onFileSelected($event)" accept=".pdf">
-        </div>
+<button (click)="downloadCsv()">Download CSV</button>
