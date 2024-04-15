@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify, send_file, session
 from flask_cors import CORS
 import langchain
-import os
+import os,io
+from io import StringIO, BytesIO
 from dotenv import load_dotenv
 from pypdf import PdfReader
 from langchain.text_splitter import CharacterTextSplitter,RecursiveCharacterTextSplitter
@@ -102,8 +103,8 @@ def upload_file():
             if(file_type=="Business Requirement Document"):
                 return jsonify({"message": "Successfully uploaded BRD file"}), 200
             else:
-                print(f"This is an {file_type} file, please upload a BRD to generate User story.")
-                return jsonify({"error": f"This is a {file_type} file"}), 406        
+                error="This is a {} file. Kindly upload a BRD.".format(file_type)
+                return jsonify({"message": str(error)}), 406        
 
 
 @app.route('/get_functionality', methods=['GET'])   
@@ -173,8 +174,10 @@ def get_functionality():
     # {response}
     # Show only the fucntionality names from each topics. Combine all functionlity to one.
     # """).content
-    print(functionalities)
-    return functionality, 200
+    if(functionality):
+        return functionality, 200
+    else:
+        return "Oops!!! Something went wrong while generating functionality", 400
 
 
 @app.route('/get_user_stories', methods=['GET'])
@@ -260,11 +263,12 @@ def get_user_story():
 
         # Add the generated user story to the dictionary under the component name key
         user_stories_by_component[component_name] = user_story
-    
-    user_story=[user_stories_by_component]
-    if user_story:
+
+    global user_stories
+    user_stories=[user_stories_by_component]
+    if user_stories:
         # # Return user stories as JSON response
-        return jsonify(user_story), 200
+        return jsonify(user_stories), 200
     else:
         return 'No user stories found in session', 404
 
@@ -294,13 +298,17 @@ def download_csv_api():
     # Generate the CSV data
     csv_data = generate_csv(user_stories)
 
-    # Send the CSV data as a file attachment
+    # Create a file-like object from the CSV data
+    file_obj = BytesIO(csv_data)
+
+    # Return the CSV data as a file attachment
     return send_file(
-        filename_or_fp='user_stories.csv',
-        attachment_filename='user_stories.csv',
+        file_obj,
+        attachment_filename='user_stories.csv',  # Specify the filename
         as_attachment=True,
         mimetype='text/csv'
     )
+
 
 
 if __name__ == "__main__":
