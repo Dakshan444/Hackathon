@@ -1,3 +1,83 @@
+this.apiService.submitFile(this.selectedFileName, this.fileToUpload).subscribe(
+                event => {
+                    if (event instanceof HttpResponse) {
+                        // Handle the response when the file upload is complete
+                        dialogRef.close();
+                        this.isClicked=true;
+                        this.isFuncLoading=true;
+                        this.isStoryLoading=true;
+                        console.log('Response received:', event.body);
+
+                        // Display success notification to the user
+                        this.snackBar.open('BRD uploaded successfully, please wait for data processing.', 'Close', {
+                            duration: 5000,
+                            horizontalPosition: 'right',
+                            verticalPosition: 'bottom',
+                            panelClass: ['custom-snackbar', 'custom-snackbar-animate'],
+                        });
+
+                        // Fetch functionality data after successful file upload
+                        this.apiService.fetchFunctionalityData().subscribe(
+                            functionalityResponse => {
+                                this.Functionality = functionalityResponse;
+                                this.isFuncLoading=false
+                                console.log('Functionality data fetched:', functionalityResponse);
+
+                                // Store functionality data locally
+                                localStorage.setItem('functionality', JSON.stringify(functionalityResponse));
+
+                                // Fetch user stories data after successful file upload
+                                this.apiService.fetchUserStoriesData().subscribe(
+                                    userStoriesResponse => {
+                                        this.isStoryLoading=false;
+                                        this.UserStories = userStoriesResponse;
+                                        console.log('User stories data fetched:', userStoriesResponse);
+
+                                        // Store user stories data locally
+                                        localStorage.setItem('user_stories', JSON.stringify(userStoriesResponse));
+                                    },
+                                    error => {
+                                        console.error('Error fetching user stories data:', error);
+                                        this.snackBar.open('Oops!!! Error while fetching user stories data.', 'Close', {
+                                            duration: 5000,
+                                            horizontalPosition: 'right',
+                                            verticalPosition: 'bottom',
+                                            panelClass: ['custom-snackbar', 'custom-snackbar-animate'],
+                                        });
+                                    }
+                                );
+                                // dialogRef.close();
+                            },
+                            error => {
+                                console.error('Error fetching functionality data:', error);
+                                this.snackBar.open('Oops!!! Error while fetching functionality data.', 'Close', {
+                                    duration: 5000,
+                                    horizontalPosition: 'right',
+                                    verticalPosition: 'bottom',
+                                    panelClass: ['custom-snackbar', 'custom-snackbar-animate'],
+                                });
+                            }
+                        );
+                    }
+                },
+                error => {
+                    // Close the dialog if an error occurs
+                    dialogRef.close();
+                    console.error('Error:', error);
+                    // Display error notification
+                    this.snackBar.open('An error occurred while submitting the file.', 'Close', {
+                        duration: 3000,
+                        horizontalPosition: 'right',
+                        verticalPosition: 'bottom',
+                        panelClass: ['custom-snackbar', 'custom-snackbar-animate'],
+                    });
+                }
+            );
+
+
+
+
+
 
 //Service
 import { Injectable } from '@angular/core';
